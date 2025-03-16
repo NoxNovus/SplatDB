@@ -5,11 +5,12 @@ from pathlib import Path
 
 SPLAT_DIR = "splats"
 FILE = "test.ply"
+FILENAME, _ = os.path.splitext(FILE)
 
 
 def main():
     input_ply = Path.cwd() / SPLAT_DIR / FILE
-    n = 4  
+    n = 32
     split_point_cloud(input_ply, n)
 
 
@@ -45,7 +46,7 @@ def split_point_cloud(input_ply: str, n: int):
         if colors is not None:
             chunk_pcd.colors = o3d.utility.Vector3dVector(np.array(chunk_data['colors']))
 
-        output_path = output_dir / f'chunk_{index[0]}_{index[1]}_{index[2]}.ply'
+        output_path = output_dir / f'{FILENAME}_chunk_{index[0]}_{index[1]}_{index[2]}.ply'
         o3d.io.write_point_cloud(str(output_path), chunk_pcd)
 
     print(f"Successfully split {input_ply} into {len(chunks)} chunks and saved to {output_dir}")

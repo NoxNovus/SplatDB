@@ -2,7 +2,7 @@ from pathlib import Path
 import open3d as o3d
 
 SPLAT_DIR = "splats"
-FILE = "test.ply"
+FILE = "result.ply"
 
 ply_file = Path.cwd() / SPLAT_DIR / FILE
 

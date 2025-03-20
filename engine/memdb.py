@@ -1,3 +1,5 @@
+import os
+from pathlib import Path
 from typing import Dict, List
 
 import numpy as np
@@ -17,12 +19,20 @@ class MemDB(EngineDBInterface):
         super().__init__(chunk_size, **kwargs)
         self.chunk_size = chunk_size
         self.db: Dict[ChunkData] = {}
+        self.image_repo = kwargs.get('image_repo', 'images')
 
     def connect(self):
-        pass
+        dir = Path.cwd() / self.image_repo
+        os.makedirs(dir, exist_ok=True)
+        print("Connected")
 
     def disconnect(self):
-        pass
+        if self.image_repo and os.path.exists(self.image_repo):
+            for root, dirs, files in os.walk(self.image_repo, topdown=False):
+                for file in files:
+                    os.remove(os.path.join(root, file))
+            os.rmdir(self.image_repo)
+        print("Disconnected")
 
     def insert(self, gps_data: List[float], point_cloud: o3d.geometry.PointCloud) -> int:
         chunk_pos = convert_gps_data_to_chunk(gps_data, self.chunk_size)

@@ -6,6 +6,7 @@ import numpy as np
 from engine.type import CameraPos, ChunkData, ChunkMetadata
 from engine.interface import EngineDBInterface
 import open3d as o3d
+import shutil
 
 from utils import compute_min_max_bound, convert_gps_data_to_chunk
 
@@ -91,12 +92,17 @@ class MemDB(EngineDBInterface):
         return 1
 
     def load_images(self, directory: str):
+        print("Loading images")
+        allowed_ext = ['.jpg', '.png', '.jpeg']
         try:
             for file_name in os.listdir(directory):
+                print(file_name)
                 src_path = os.path.join(directory, file_name)
                 dest_path = os.path.join(self.image_repo, file_name)
                 if os.path.isfile(src_path):
-                    os.replace(src_path, dest_path)
+                    _, ext = os.path.splitext(file_name)
+                    if ext in allowed_ext:
+                        shutil.copyfile(src_path, dest_path)
         except Exception as e:
             print(e)
             
@@ -153,7 +159,6 @@ class MemDB(EngineDBInterface):
     def _populate_chunk_data_from_mapping(self, mapping: ChunkMetadata):
         for chunk_id, camera_pos in mapping.chunks.items():
             x, y, z = map(int, chunk_id.strip('chunk_').split('_'))
-            print(f"Populating chunk {x}, {y}, {z}")
             key = [x, y, z]
             id = str(key)
             if id in self.db:

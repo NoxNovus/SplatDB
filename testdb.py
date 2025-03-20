@@ -6,8 +6,6 @@ from render_utils import generate_axes, generate_connecting_wireframe
 from utils import compute_min_max_bound, load_point_cloud_from_file
 from utils import parse_chunk_mapping_from_file
 
-
-
 CHUNK_SIZE = 10
 FILE = "transformed.ply"
 DIR = "splats"
@@ -28,8 +26,9 @@ print(bool(err))
 data = parse_chunk_mapping_from_file("splats/chunk_map.json")
 db.add_metadata(refer, data)
 
-print(db.db)
-result = db.query([0, 0, 0], 10)
+db.load_images("C:/Users/nguye/Downloads/images")
+
+result = db.query([20, 0, 0], 1)
 
 print(result)
 
@@ -42,13 +41,11 @@ for chunk in result:
 set_camera = set(camera_list)
 camera_list = list(set_camera)
 
-print(camera_list)
-print(len(camera_list))
+print(f"Loaded: {len(camera_list)} cameras")
 
 sphere_list = []
 
 for camera in camera_list:
-    print(camera.position)
     sphere = o3d.geometry.TriangleMesh.create_sphere(radius=0.1)
     sphere.translate(camera.position)
     sphere.paint_uniform_color([1, 0, 0])  # Red color for the spheres

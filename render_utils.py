@@ -66,7 +66,6 @@ def generate_connecting_wireframe(min_bound: List[float], max_bound: List[float]
     for x in range(int(start[0] - chunk_size), int(end[0] + chunk_size), chunk_size):
         for y in range(int(start[1] - chunk_size), int(end[1] + chunk_size), chunk_size):
             for z in range(int(start[2] - chunk_size), int(end[2] + chunk_size), chunk_size):
-                print(f"Generating wireframe for chunk {x}, {y}, {z}")
                 pos = [x, y, z]
                 wireframe = generate_chunk_wireframe(pos, chunk_size)
                 

@@ -1,7 +1,6 @@
 import os
 import numpy as np
 import open3d as o3d
-import pandas as pd
 from pathlib import Path
 
 SPLAT_DIR = "splats"

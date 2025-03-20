@@ -35,6 +35,8 @@ class MemDB(EngineDBInterface):
             actual_chunk_pos = (np.asarray(chunk['chunk_pos']) + np.asarray(chunk_pos)).tolist()
             actual_chunk_pcd = chunk['point_cloud']
 
+            actual_chunk_pcd.translate(-np.asarray(chunk['chunk_pos']))
+
             chunk_id = str(actual_chunk_pos)
 
             if chunk_id in self.db:
@@ -62,7 +64,11 @@ class MemDB(EngineDBInterface):
 
         for chunk in self.db.values():
             if np.linalg.norm(np.array(chunk['chunk_pos']) - np.array(chunk_pos)) <= actual_metric_radius:
-                ret.append(ChunkData(**chunk))
+                chunk_data = ChunkData(**chunk)
+                pcd = chunk_data.pcd
+                pcd.translate(np.asarray(chunk['chunk_pos']))
+
+                ret.append(chunk_data)
 
         return ret
 

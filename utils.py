@@ -1,6 +1,9 @@
+import json
 from typing import List
 import numpy as np
 import open3d as o3d
+
+from engine.type import ChunkMetadata
 
 def convert_gps_data_to_chunk(gps_data: List[float], chunk_size: int) -> List[int]:
     """
@@ -25,3 +28,12 @@ def compute_min_max_bound(pcd: o3d.geometry.PointCloud) -> List[float]:
     min_bound = points.min(axis=0)
     max_bound = points.max(axis=0)
     return min_bound, max_bound
+
+def parse_chunk_mapping_from_file(file_path: str) -> ChunkMetadata:
+    """
+    Parse chunk mapping from file
+    """
+    with open(file_path, 'r') as f:
+        raw_dict = json.load(f)
+
+    return ChunkMetadata.from_raw_json(raw_dict)

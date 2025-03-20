@@ -4,10 +4,12 @@ import open3d as o3d
 from engine.memdb import MemDB
 from render_utils import generate_axes, generate_connecting_wireframe
 from utils import compute_min_max_bound, load_point_cloud_from_file
+from utils import parse_chunk_mapping_from_file
+
 
 
 CHUNK_SIZE = 10
-FILE = "result.ply"
+FILE = "transformed.ply"
 DIR = "splats"
 
 ply_file = Path.cwd() / DIR / FILE
@@ -18,8 +20,13 @@ db = MemDB(CHUNK_SIZE)
 
 db.connect()
 
-err = db.insert([10, 10, 10], pcd)
+refer = [10, 10, 10]
+
+err = db.insert(refer, pcd)
 print(bool(err))
+
+data = parse_chunk_mapping_from_file("splats/chunk_map.json")
+db.add_metadata(refer, data)
 
 print(db.db)
 result = db.query([0, 0, 0], 10)
@@ -27,13 +34,31 @@ result = db.query([0, 0, 0], 10)
 print(result)
 
 mesh = o3d.geometry.PointCloud()
+camera_list = []
 for chunk in result:
     mesh += chunk.pcd
+    camera_list.extend(chunk.camera_pos)
+
+set_camera = set(camera_list)
+camera_list = list(set_camera)
+
+print(camera_list)
+print(len(camera_list))
+
+sphere_list = []
+
+for camera in camera_list:
+    print(camera.position)
+    sphere = o3d.geometry.TriangleMesh.create_sphere(radius=0.1)
+    sphere.translate(camera.position)
+    sphere.paint_uniform_color([1, 0, 0])  # Red color for the spheres
+    sphere_list.append(sphere)
 
 min_bound, max_bound = compute_min_max_bound(mesh)
 wire_frame = generate_connecting_wireframe(min_bound, max_bound, CHUNK_SIZE)
-axes = generate_axes(100)
+axes = generate_axes(50)
 
-o3d.visualization.draw_geometries([mesh, axes])
+
+o3d.visualization.draw_geometries([mesh, axes, *sphere_list])
 
 db.disconnect()

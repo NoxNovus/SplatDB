@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Dict, List
 
 import numpy as np
-from engine.type import ChunkData, ChunkMetadata
+from engine.type import CameraPos, ChunkData, ChunkMetadata
 from engine.interface import EngineDBInterface
 import open3d as o3d
 
@@ -20,10 +20,12 @@ class MemDB(EngineDBInterface):
         self.chunk_size = chunk_size
         self.db: Dict[ChunkData] = {}
         self.image_repo = kwargs.get('image_repo', 'images')
+        self.camera_mapping :Dict[str, CameraPos] = kwargs.get('camera_mapping', {})
 
     def connect(self):
         dir = Path.cwd() / self.image_repo
         os.makedirs(dir, exist_ok=True)
+        self.image_repo = str(dir)
         print("Connected")
 
     def disconnect(self):
@@ -82,8 +84,22 @@ class MemDB(EngineDBInterface):
 
         return ret
 
-    def add_metadata(self, metadata: ChunkMetadata) -> int:
-        pass
+    def add_metadata(self, gps_data: List[float], metadata: ChunkMetadata) -> int:
+        chunk_pos = convert_gps_data_to_chunk(gps_data, self.chunk_size)
+        self._generate_camera_pos_from_mapping(chunk_pos, metadata)
+        self._populate_chunk_data_from_mapping(metadata)
+        return 1
+
+    def load_images(self, directory: str):
+        try:
+            for file_name in os.listdir(directory):
+                src_path = os.path.join(directory, file_name)
+                dest_path = os.path.join(self.image_repo, file_name)
+                if os.path.isfile(src_path):
+                    os.replace(src_path, dest_path)
+        except Exception as e:
+            print(e)
+            
 
     def _split_point_cloud(self, point_cloud: o3d.geometry.PointCloud) -> List[Dict]:
         
@@ -122,5 +138,27 @@ class MemDB(EngineDBInterface):
                     })
 
         return ret
+    
+    def _generate_camera_pos_from_mapping(self, gps_data: List[float], mapping: ChunkMetadata):
+        for _, camera_pos in mapping.chunks.items():
+            for pos in camera_pos:
+                if pos.file_name in self.camera_mapping:
+                    continue
+                self.camera_mapping[pos.file_name] = CameraPos(
+                    file_name=pos.file_name,
+                    position=[pos.position[0] + gps_data[0], pos.position[1] + gps_data[1], pos.position[2] + gps_data[2]],
+                    rotation=pos.rotation
+                )
 
+    def _populate_chunk_data_from_mapping(self, mapping: ChunkMetadata):
+        for chunk_id, camera_pos in mapping.chunks.items():
+            x, y, z = map(int, chunk_id.strip('chunk_').split('_'))
+            print(f"Populating chunk {x}, {y}, {z}")
+            key = [x, y, z]
+            id = str(key)
+            if id in self.db:
+                self.db[id]['camera_pos'].extend(self.camera_mapping[cam.file_name] for cam in camera_pos)
+                remove_dup = set(self.db[id]['camera_pos'])
+                if len(self.db[id]['camera_pos']) > 1:
+                    self.db[id]['camera_pos'] = list(remove_dup)
         

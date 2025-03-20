@@ -16,6 +16,9 @@ class CameraPos():
             rotation=data[2]
         )
 
+    def __hash__(self):
+        return hash((self.file_name, tuple(self.position), tuple(self.rotation)))
+
 @dataclass
 class ChunkData():
     pcd: o3d.geometry.PointCloud

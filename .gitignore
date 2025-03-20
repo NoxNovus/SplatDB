@@ -1,2 +1,13 @@
 chunks/
 env/
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+*.sqlite3
+.DS_Store
+.vscode/
+.idea/
+*.egg-info/

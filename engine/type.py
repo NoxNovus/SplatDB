@@ -1,8 +1,9 @@
-from pydantic import BaseModel
+from dataclasses import dataclass
 from typing import Dict, List
 import open3d as o3d
 
-class CameraPos(BaseModel):
+@dataclass
+class CameraPos():
     file_name: str
     position: List[float]
     rotation: List[float]
@@ -15,13 +16,15 @@ class CameraPos(BaseModel):
             rotation=data[2]
         )
 
-class ChunkData(BaseModel):
+@dataclass
+class ChunkData():
     pcd: o3d.geometry.PointCloud
     camera_pos: List[CameraPos]
     chunk_pos: List[float]
     chunk_size: int
 
-class ChunkMetadata(BaseModel):
+@dataclass
+class ChunkMetadata():
     chunks: Dict[str, List[CameraPos]]
 
     @classmethod
